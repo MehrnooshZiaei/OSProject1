@@ -9,6 +9,9 @@
 #include <ctype.h>
 
 
+#define PARENT_WITH_DECODER "/tmp/parentWithDecoder"
+#define DECODER_WITH_FINDER "/tmp/decoderWithFinder"
+
 void removeSpaces(char *str){
     int count = 0;
     for (int i = 0; str[i]; i++)
@@ -21,12 +24,27 @@ void removeSpaces(char *str){
 //Enter + semicolon to make a file
 int main(){
 
-    char decoderPart[10000] = "sgskldjghssldkjghdsgdg dgjghdglflkgjfbghdsfda \ndhgdbdlskjhgbdglhdsbg";
+    //pipe between parent and decoder process - fdPD
+    //char *parentWithDecoder = "/tmp/parentWithDecoder";
+    //mkfifo(parentWithDecoder, 0666);
+    //pipe between decoder and finder - fdDF
+    //char *decoderWithFinder = "/tmp/decoderWithFinder";
+    //mkfifo(decoderWithFinder, 0666);
+
+    int fdPD, fdDF;
+    char decoderPart[10000];
+
+    fdPD = open(PARENT_WITH_DECODER,O_RDONLY);
+    int lastIndex = read(fdPD, decoderPart, sizeof(decoderPart));
+    decoderPart[lastIndex] = '\0';
+    close(fdPD);
+
+    
+   // char decoderPart[10000] = "sgskldjghssldkjghdsgdg dgjghdglflkgjfbghdsfda \ndhgdbdlskjhgbdglhdsbg";
     /*printf("Enter the encrypted text (press ';' at the end of text)\n");
     scanf("%[^;]s", decoderPart);
     //printf("Before : %s\n",decoderPart);*/
-
-
+    
 
     removeSpaces(decoderPart);
     int len = 0;
@@ -53,6 +71,10 @@ int main(){
         }
     }
     //printf("After : %s\n",decoderPart);
+
+    fdDF = open(DECODER_WITH_FINDER,O_WRONLY);
+    write(fdDF, decoderPart, strlen(decoderPart)+1);
+    close(fdDF);
     
     FILE *filePointer;
     filePointer = fopen("decoderDecrypt.txt","w");
